@@ -1,32 +1,77 @@
-# Fetis 🚧 (Under Active Development)
+# Fetis ⚡
 
 **Fetis** is a blazing-fast, asynchronous, in-memory key-value data store built from scratch in Rust.
 
-Currently in active development, this project serves as a lightweight, high-performance alternative for caching and shared state management in distributed applications and multiplayer game backends.
+Designed as a lightweight, high-performance alternative for caching and shared state management, Fetis is built to handle massive concurrency for distributed applications and multiplayer game backends.
 
-## ⚠️ Project Status: Work in Progress
+## 🚀 Project Status: MVP Operational
 
-Fetis is currently undergoing a rapid development sprint. The core networking loop and execution engine are being actively built. It is not yet ready for production use.
+The core engine for Fetis is fully functional. It successfully handles highly concurrent TCP connections, custom text-protocol parsing, and thread-safe memory mutation.
 
-## 🛠️ Tech Stack
+## 🛠️ Architectural Stack
 
-* **Language:** Rust
-* **Runtime:** Tokio
+* **Language:** Rust (Strictly safe, memory-leak-free concurrency)
+* **Networking:** Tokio (Work-stealing async I/O via `epoll`)
+* **Storage Engine:** `Arc<RwLock<HashMap>>` (Permits infinite simultaneous readers and safely isolated writes)
 
-## 📝 Planned MVP Operations (The Contract)
+## 📝 Supported Commands (The Contract)
 
-Fetis communicates over raw TCP. The initial milestone will support the following commands:
+Fetis communicates over raw TCP. The engine currently supports the following operations:
 
 | Command | Description | Example |
 | :--- | :--- | :--- |
 | `PING` | Health check. Server responds with `PONG`. | `PING\r\n` |
 | `SET` | Stores a string value under a specific key. | `SET username Countless\r\n` |
 | `GET` | Retrieves the value associated with a key. | `GET username\r\n` |
+| `GET all` | *Diagnostic:* Dumps the entire server state. | `GET all\r\n` |
 | `DEL` | Deletes a key-value pair from memory. | `DEL username\r\n` |
 
-## 🚀 Getting Started (Coming Soon)
+## 💻 Getting Started
 
-Build and run instructions will be provided once the MVP command parser and memory hashmap are fully integrated.
+### 1. Start the Server
+
+Clone the repository and run the server using Cargo. By default, Fetis binds to `127.0.0.1:8080`.
+
+```bash
+cargo run
+```
+
+*Optional: You can provide a custom port as a command-line argument:*
+
+```bash
+cargo run 9000
+```
+
+### 2. Connect the Client
+
+Because Fetis uses a custom raw text protocol, you can interact with it using Netcat (`nc`).
+
+*Note: Use the `-C` flag (OpenBSD netcat) to ensure your terminal sends the required `\r\n` line endings.*
+
+```bash
+nc -C 127.0.0.1 8080
+```
+
+### 3. Execute Commands
+
+Once connected, send commands directly to the engine:
+
+```text
+SET studio Countless
+Done
+
+GET studio
+Countless
+
+PING
+PONG
+```
 
 ---
-*Built with precision for high-concurrency systems.*
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+*Built with ❤ and precision for high-concurrency systems by Pratyoosh.*

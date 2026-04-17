@@ -9,6 +9,8 @@ use tokio::{
     io::{ BufReader, AsyncBufReadExt, AsyncWriteExt },
 };
 
+use fetis::{ parse, execute };
+
 #[tokio::main]
 async fn main() {
     let args: Vec<String> = env::args().collect();
@@ -58,30 +60,9 @@ async fn main() {
                     break;
                 }
 
-                let response = match request[0].to_uppercase().as_str() {
-                    "PING" => "PONG\r\n".to_string(),
-                    "SET" => {
-                        if let (Some(key), Some(value)) = (request.get(1), request.get(2)) {
-                            set(key, value, &storage)
-                        } else {
-                            "ERROR: Missing key or value\r\n".to_string()
-                        }
-                    },
-                    "GET" => {
-                        if let Some(key) = request.get(1) {
-                            get(key, &storage)
-                        } else {
-                            "ERROR: Missing key\r\n".to_string()
-                        }
-                    },
-                    "DEL" => {
-                        if let Some(key) = request.get(1) {
-                            delete(key, &storage)
-                        } else {
-                            "ERROR: Missing key\r\n".to_string()
-                        }
-                    }
-                    _ => "Invalid Command\r\n".to_string(),
+                let response = match parse(request) {
+                    Ok(query) => execute(query, &storage),
+                    Err(e) => e,
                 };
 
                 // println!("Map: {:#?}", storage.read().unwrap()); // For Debug
@@ -97,52 +78,3 @@ async fn main() {
     }
 }
 
-fn set(key: &str, value: &str, storage: &Arc<RwLock<HashMap<String, String>>>) -> String {
-    let mut map = match storage.write() {
-        Ok(map) => map,
-        Err(e) => {
-            eprintln!("Error occured while aquiring write lock: {e}");
-            return "ERROR: Internal Server Error\r\n".to_string();
-        }
-    };
-    map.insert(
-        key.to_string(),
-        value.to_string(),
-    );
-    "Done\r\n".to_string()
-}
-
-fn get(key: &str, storage: &Arc<RwLock<HashMap<String,String>>>) -> String {
-    let map = match storage.read() {
-        Ok(map) => map,
-        Err(e) => {
-            eprintln!("Error occured while aquiring read lock: {e}");
-            return "ERROR: Internal Server Error\r\n".to_string();
-        }
-    };
-
-    if let "all" = key {
-        return format!("{:#?}\r\n", map);
-    }
-
-    match map.get(key) {
-        Some(value) => return format!("{value}\r\n"),
-        None => "Not found\r\n".to_string(),
-    }
-}
-
-fn delete(key: &str, storage: &Arc<RwLock<HashMap<String,String>>>) -> String {
-    let mut map = match storage.write() {
-        Ok(map) => map,
-        Err(e) => {
-            eprintln!("Error occured while aquiring write lock: {e}");
-            return "ERROR: Internal Server Error\r\n".to_string();
-        }
-    };
-
-    if let None = map.remove(key) {
-        "Not found\r\n".to_string()
-    } else {
-        "Deleted\r\n".to_string()
-    }
-}

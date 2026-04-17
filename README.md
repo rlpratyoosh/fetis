@@ -1,8 +1,18 @@
-# Fetis ⚡
+<div align="center">
+  
+# ⚡ FETIS
+  
+  **A blazing-fast, asynchronous, in-memory key-value data store built from scratch in Rust.**
 
-**Fetis** is a blazing-fast, asynchronous, in-memory key-value data store built from scratch in Rust.
+  [![Rust](https://img.shields.io/badge/rust-safe%20%26%20fast-orange.svg?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
+  [![Tokio](https://img.shields.io/badge/tokio-async%20I%2FO-black.svg?style=for-the-badge)](https://tokio.rs)
+  [![Status](https://img.shields.io/badge/status-MVP%20Operational-brightgreen.svg?style=for-the-badge)](#-project-status-mvp-operational)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
-Designed as a lightweight, high-performance alternative for caching and shared state management, Fetis is built to handle massive concurrency for distributed applications and multiplayer game backends.
+  <br>
+</div>
+
+Designed as a lightweight, high-performance alternative for caching and shared state management, **Fetis** is built to handle massive concurrency for distributed applications and multiplayer game backends.
 
 ## 🚀 Project Status: MVP Operational
 
@@ -74,4 +84,6 @@ PONG
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
-*Built with ❤ and precision for high-concurrency systems by Pratyoosh.*
+<div align="center">
+  <i>Built with ❤ and precision for high-concurrency systems by Pratyoosh.</i>
+</div>

@@ -1,5 +1,7 @@
 use std::{
     env,
+    sync::{Arc, RwLock},
+    collections::HashMap,
 };
 
 use tokio::{
@@ -27,6 +29,8 @@ async fn main() {
         }
     };
 
+    let storage = Arc::new(RwLock::new(HashMap::<String, String>::new()));
+
     loop {
         let (mut socket, _) = match listener.accept().await {
             Ok((socket, addr)) => {
@@ -38,6 +42,9 @@ async fn main() {
                 continue;
             }
         };
+
+
+        let storage = Arc::clone(&storage);
 
         tokio::spawn(async move {
             let (reader, mut writer) = socket.split();
@@ -53,8 +60,17 @@ async fn main() {
 
                 let response = match request[0].to_uppercase().as_str() {
                     "PING" => "PONG\r\n".to_string(),
+                    "SET" => {
+                        if let (Some(key), Some(value)) = (request.get(1), request.get(2)) {
+                            set(key, value, &storage)
+                        } else {
+                            "ERR: missing key or value\r\n".to_string()
+                        }
+                    },
                     _ => "Invalid\r\n".to_string(),
                 };
+
+                // println!("Map: {:#?}", storage.read().unwrap()); // For Debug
 
                 if let Err(e) = writer.write_all(response.as_bytes()).await {
                     eprintln!("Error while writing back to client: {e}");
@@ -65,4 +81,19 @@ async fn main() {
             println!("Client disconnected!");
         });
     }
+}
+
+fn set(key: &str, value: &str, storage: &Arc<RwLock<HashMap<String, String>>>) -> String {
+    let mut map = match storage.write() {
+        Ok(map) => map,
+        Err(e) => {
+            eprintln!("Error occured while aquiring write lock: {e}");
+            return "An error occured\r\n".to_string();
+        }
+    };
+    map.insert(
+        key.to_string(),
+        value.to_string(),
+    );
+    "Done\r\n".to_string()
 }

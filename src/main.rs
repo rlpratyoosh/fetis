@@ -45,7 +45,18 @@ async fn main() {
 
             let mut lines = buf_reader.lines();
             while let Ok(Some(line)) = lines.next_line().await {
-                if let Err(e) = writer.write_all(line.as_bytes()).await {
+
+                let request: Vec<&str> = line.splitn(3, ' ').collect();
+                if request[0].is_empty() {
+                    break;
+                }
+
+                let response = match request[0].to_uppercase().as_str() {
+                    "PING" => "PONG\r\n".to_string(),
+                    _ => "Invalid\r\n".to_string(),
+                };
+
+                if let Err(e) = writer.write_all(response.as_bytes()).await {
                     eprintln!("Error while writing back to client: {e}");
                     break;
                 }

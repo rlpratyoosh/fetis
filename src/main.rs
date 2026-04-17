@@ -64,10 +64,17 @@ async fn main() {
                         if let (Some(key), Some(value)) = (request.get(1), request.get(2)) {
                             set(key, value, &storage)
                         } else {
-                            "ERR: missing key or value\r\n".to_string()
+                            "ERROR: Missing key or value\r\n".to_string()
                         }
                     },
-                    _ => "Invalid\r\n".to_string(),
+                    "GET" => {
+                        if let Some(key) = request.get(1) {
+                            get(key, &storage)
+                        } else {
+                            "ERROR: Missing key\r\n".to_string()
+                        }
+                    }
+                    _ => "Invalid Command\r\n".to_string(),
                 };
 
                 // println!("Map: {:#?}", storage.read().unwrap()); // For Debug
@@ -88,7 +95,7 @@ fn set(key: &str, value: &str, storage: &Arc<RwLock<HashMap<String, String>>>) -
         Ok(map) => map,
         Err(e) => {
             eprintln!("Error occured while aquiring write lock: {e}");
-            return "An error occured\r\n".to_string();
+            return "ERROR: Internal Server Error\r\n".to_string();
         }
     };
     map.insert(
@@ -96,4 +103,23 @@ fn set(key: &str, value: &str, storage: &Arc<RwLock<HashMap<String, String>>>) -
         value.to_string(),
     );
     "Done\r\n".to_string()
+}
+
+fn get(key: &str, storage: &Arc<RwLock<HashMap<String,String>>>) -> String {
+    let map = match storage.read() {
+        Ok(map) => map,
+        Err(e) => {
+            eprintln!("Error occured while aquiring read lock: {e}");
+            return "ERROR: Internal Server Error\r\n".to_string();
+        }
+    };
+
+    if let "all" = key {
+        return format!("{:#?}\r\n", map);
+    }
+
+    match map.get(key) {
+        Some(value) => return format!("{value}\r\n"),
+        None => "Not found\r\n".to_string(),
+    }
 }

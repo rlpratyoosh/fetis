@@ -73,6 +73,13 @@ async fn main() {
                         } else {
                             "ERROR: Missing key\r\n".to_string()
                         }
+                    },
+                    "DEL" => {
+                        if let Some(key) = request.get(1) {
+                            delete(key, &storage)
+                        } else {
+                            "ERROR: Missing key\r\n".to_string()
+                        }
                     }
                     _ => "Invalid Command\r\n".to_string(),
                 };
@@ -121,5 +128,21 @@ fn get(key: &str, storage: &Arc<RwLock<HashMap<String,String>>>) -> String {
     match map.get(key) {
         Some(value) => return format!("{value}\r\n"),
         None => "Not found\r\n".to_string(),
+    }
+}
+
+fn delete(key: &str, storage: &Arc<RwLock<HashMap<String,String>>>) -> String {
+    let mut map = match storage.write() {
+        Ok(map) => map,
+        Err(e) => {
+            eprintln!("Error occured while aquiring write lock: {e}");
+            return "ERROR: Internal Server Error\r\n".to_string();
+        }
+    };
+
+    if let None = map.remove(key) {
+        "Not found\r\n".to_string()
+    } else {
+        "Deleted\r\n".to_string()
     }
 }
